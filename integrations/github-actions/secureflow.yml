@@ -1,0 +1,40 @@
+name: SecureFlow Gate
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  secureflow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the skill
+        run: python integrations/install.py --agent copilot --scope user
+
+      - name: Run the security gate
+        run: |
+          python "$HOME/.copilot/skills/secureflow/scripts/secureflow-gate.py" scan \
+            --root . \
+            --profile csharp-aspnetcore \
+            --fail-on unverified \
+            --report secureflow-report.json \
+            --markdown secureflow-report.md
+
+      - name: Upload the evidence report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: secureflow-report
+          path: |
+            secureflow-report.json
+            secureflow-report.md
+          if-no-files-found: ignore

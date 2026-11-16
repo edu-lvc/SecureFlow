@@ -1,0 +1,6 @@
+interface:
+  display_name: "SecureFlow"
+  short_description: "Prevention-first security workflow with an evidence gate"
+  default_prompt: "Use $secureflow to identify risks, define security requirements, implement controls, review the change, and verify the result with evidence."
+policy:
+  allow_implicit_invocation: true

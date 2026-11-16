@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "secureflow-gate"
+version = "0.1.0"
+description = "Evidence-based security gate for the SecureFlow Agent Skill"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "SecureFlow contributors" }]
+keywords = ["security", "agent-skills", "aspnetcore", "csharp", "sast"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Security",
+]
+
+[project.scripts]
+secureflow-gate = "secureflow_gate.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "skill/secureflow/scripts" }
+packages = ["secureflow_gate", "secureflow_gate.rulepacks", "secureflow_gate.schema"]
+
+[tool.setuptools.package-data]
+secureflow_gate = ["rulepacks/*.json", "schema/*.json"]

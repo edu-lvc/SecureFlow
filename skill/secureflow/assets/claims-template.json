@@ -1,0 +1,31 @@
+{
+  "schema_version": "secureflow.claims/v1",
+  "claims": [
+    {
+      "control": "input-validation",
+      "status": "PASS",
+      "summary": "CreateOrderRequest is validated by [ApiController] and data annotations.",
+      "evidence": [
+        {
+          "path": "Program.cs",
+          "line": 6,
+          "snippet": "builder.Services.AddControllers();",
+          "sha256": ""
+        }
+      ]
+    },
+    {
+      "control": "authorization",
+      "status": "PASS",
+      "summary": "All mutating endpoints inherit [Authorize] from OrdersController.",
+      "evidence": [
+        {
+          "path": "Controllers/OrdersController.cs",
+          "line": 9,
+          "snippet": "[Authorize]",
+          "sha256": ""
+        }
+      ]
+    }
+  ]
+}

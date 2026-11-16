@@ -1,0 +1,226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://secureflow.dev/schema/report.schema.json",
+  "title": "SecureFlow Gate Report",
+  "type": "object",
+  "required": ["schema_version", "tool", "scan", "summary", "controls", "findings", "integrity"],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": { "const": "secureflow.gate.report/v1" },
+    "tool": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" }
+      }
+    },
+    "scan": {
+      "type": "object",
+      "required": ["root", "profile", "packs", "files_scanned", "files_skipped", "excludes"],
+      "properties": {
+        "root": { "type": "string" },
+        "profile": { "type": "string" },
+        "packs": { "type": "array", "items": { "type": "string" } },
+        "started_at": { "type": "string" },
+        "finished_at": { "type": "string" },
+        "files_scanned": { "type": "integer", "minimum": 0 },
+        "files_skipped": { "type": "integer", "minimum": 0 },
+        "skipped": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "reason"],
+            "properties": {
+              "path": { "type": "string" },
+              "reason": { "type": "string" }
+            }
+          }
+        },
+        "excludes": { "type": "array", "items": { "type": "string" } },
+        "warnings": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["overall_status", "status_counts", "finding_count"],
+      "properties": {
+        "overall_status": { "$ref": "#/$defs/status" },
+        "status_counts": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "finding_count": { "type": "integer", "minimum": 0 },
+        "unverified_count": { "type": "integer", "minimum": 0 },
+        "suppressed_count": { "type": "integer", "minimum": 0 },
+        "severity_counts": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "claims_contradictions": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "controls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "status", "reason", "checks"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "status": { "$ref": "#/$defs/status" },
+          "reason": { "type": "string" },
+          "checks": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/check" }
+          }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/finding" }
+    },
+    "suppressed_findings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/finding" }
+    },
+    "claims_audit": {
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["schema_version", "claims", "summary"],
+          "properties": {
+            "schema_version": { "const": "secureflow.claims/v1" },
+            "source": { "type": "string" },
+            "claims": { "type": "array", "items": { "type": "object" } },
+            "summary": {
+              "type": "object",
+              "properties": {
+                "accepted": { "type": "integer", "minimum": 0 },
+                "rejected": { "type": "integer", "minimum": 0 },
+                "contradictions": { "type": "integer", "minimum": 0 },
+                "unverified": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "warnings": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      ]
+    },
+    "adapters": {
+      "type": "object",
+      "properties": {
+        "dotnet_build": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "status": { "$ref": "#/$defs/status" },
+            "exit_code": { "type": ["integer", "null"] },
+            "target": { "type": ["string", "null"] },
+            "output": { "type": "string" }
+          }
+        }
+      }
+    },
+    "limitations": { "type": "array", "items": { "type": "string" } },
+    "integrity": {
+      "type": "object",
+      "required": ["algorithm", "files", "inventory_sha256", "report_sha256"],
+      "properties": {
+        "algorithm": { "const": "sha256" },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "sha256", "size"],
+            "properties": {
+              "path": { "type": "string" },
+              "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+              "size": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "inventory_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "report_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    }
+  },
+  "$defs": {
+    "status": {
+      "type": "string",
+      "enum": ["PASS", "FAIL", "UNVERIFIED", "NOT_APPLICABLE"]
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["path", "line", "column", "snippet", "snippet_sha256"],
+      "properties": {
+        "path": { "type": "string" },
+        "line": { "type": "integer", "minimum": 1 },
+        "column": { "type": "integer", "minimum": 1 },
+        "snippet": { "type": "string" },
+        "snippet_sha256": { "type": "string" },
+        "language": { "type": "string" }
+      }
+    },
+    "check": {
+      "type": "object",
+      "required": ["id", "title", "status", "detail", "rule_ids", "evidence"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "status": { "$ref": "#/$defs/status" },
+        "detail": { "type": "string" },
+        "rule_ids": { "type": "array", "items": { "type": "string" } },
+        "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence" } }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "required": [
+        "fingerprint",
+        "rule_id",
+        "control",
+        "title",
+        "severity",
+        "confidence",
+        "result",
+        "message",
+        "remediation",
+        "cwe",
+        "asvs",
+        "owasp",
+        "evidence"
+      ],
+      "properties": {
+        "fingerprint": { "type": "string" },
+        "rule_id": { "type": "string" },
+        "control": { "type": "string" },
+        "title": { "type": "string" },
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low", "info"]
+        },
+        "confidence": { "type": "string", "enum": ["high", "medium", "low"] },
+        "result": { "$ref": "#/$defs/status" },
+        "message": { "type": "string" },
+        "remediation": { "type": "string" },
+        "cwe": { "type": "array", "items": { "type": "string" } },
+        "asvs": { "type": "array", "items": { "type": "string" } },
+        "owasp": { "type": "array", "items": { "type": "string" } },
+        "evidence": { "$ref": "#/$defs/evidence" },
+        "suppression": {
+          "type": "object",
+          "properties": {
+            "rule_id": { "type": "string" },
+            "path": { "type": "string" },
+            "reason": { "type": "string" },
+            "expires": { "type": "string" },
+            "owner": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

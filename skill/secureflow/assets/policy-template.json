@@ -1,0 +1,12 @@
+{
+  "schema_version": "secureflow.policy/v1",
+  "suppressions": [
+    {
+      "rule_id": "SF-SEC-001",
+      "path": "tests/Fixtures/FakeCredential.cs",
+      "reason": "Fake credential used only by a negative test fixture; not a real secret.",
+      "expires": "2027-12-31",
+      "owner": "security-team"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+# Python caches and packaging artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# .NET build outputs
+bin/
+obj/
+
+# Editors and local agent configuration
+.vs/
+.vscode/
+.idea/
+
+# Local gate outputs
+secureflow-report.json
+secureflow-report.md
+
+# Test and coverage output
+.pytest_cache/
+.mypy_cache/
+.coverage
+coverage/
+htmlcov/
+
+# Secrets and local environment files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Local databases
+*.sqlite
+*.db
+
+# OS files
+.DS_Store
+Thumbs.db

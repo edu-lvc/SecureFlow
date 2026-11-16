@@ -1,0 +1,18 @@
+---
+description: Apply the SecureFlow security workflow when changing input handling, identity, permissions, secrets, database queries, or OS commands.
+globs: ["**/*"]
+alwaysApply: false
+---
+
+For security-relevant work, load the installed `secureflow` skill and follow its six phases:
+scope, risk identification, requirements and threat model, secure implementation, security
+review, and evidence-based verification.
+
+Do not report a control as passing without code or configuration evidence. Run the gate from
+the installed skill when the project uses the supported C#/ASP.NET Core profile:
+
+```bash
+python .cursor/skills/secureflow/scripts/secureflow-gate.py scan --root . --report secureflow-report.json
+```
+
+Treat `UNVERIFIED` as unresolved work, not as success.

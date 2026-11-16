@@ -1,0 +1,183 @@
+{
+  "schema_version": "secureflow.rulepack/v1",
+  "id": "csharp-aspnetcore",
+  "description": "C# and ASP.NET Core analyzers for the five baseline controls.",
+  "controls": [
+    {
+      "id": "input-validation",
+      "title": "Input validation",
+      "description": "ASP.NET Core model validation is active and not globally suppressed.",
+      "analyzers": ["input-validation"]
+    },
+    {
+      "id": "authentication",
+      "title": "Authentication",
+      "description": "Authentication is registered, invoked, and configured with secure cookie and token settings.",
+      "analyzers": ["authentication"]
+    },
+    {
+      "id": "authorization",
+      "title": "Authorization",
+      "description": "Mutating endpoints require an authenticated principal or a deny-by-default policy.",
+      "analyzers": ["authorization"]
+    },
+    {
+      "id": "injection-prevention",
+      "title": "Injection prevention",
+      "description": "SQL and OS command sinks are parameterized and avoid dynamic command construction.",
+      "analyzers": ["injection"]
+    }
+  ],
+  "rules": [
+    {
+      "id": "SF-VAL-001",
+      "control": "input-validation",
+      "title": "Model validation globally suppressed",
+      "kind": "analyzer",
+      "mode": "finding",
+      "severity": "high",
+      "confidence": "high",
+      "include": ["**/*.cs"],
+      "message": "SuppressModelStateInvalidFilter is enabled and no manual validation was detected.",
+      "remediation": "Remove the global suppression, or validate ModelState/FluentValidation explicitly before using the input.",
+      "cwe": ["CWE-20"],
+      "asvs": ["V2.2.1", "V2.2.2"],
+      "owasp": ["A06:2025", "A05:2025"]
+    },
+    {
+      "id": "SF-AUTH-001",
+      "control": "authentication",
+      "title": "Authentication middleware not invoked",
+      "kind": "analyzer",
+      "mode": "finding",
+      "severity": "high",
+      "confidence": "high",
+      "include": ["**/*.cs"],
+      "message": "Authentication services are registered but UseAuthentication is missing, so requests are not authenticated.",
+      "remediation": "Call app.UseAuthentication() before app.UseAuthorization() and before mapped endpoints.",
+      "cwe": ["CWE-287", "CWE-306"],
+      "asvs": ["V6.3.1"],
+      "owasp": ["A07:2025"]
+    },
+    {
+      "id": "SF-AUTH-003",
+      "control": "authentication",
+      "title": "Cookie is not HttpOnly",
+      "kind": "analyzer",
+      "mode": "finding",
+      "severity": "high",
+      "confidence": "high",
+      "include": ["**/*.cs"],
+      "message": "Cookie authentication sets HttpOnly to false, exposing the session cookie to script.",
+      "remediation": "Set Cookie.HttpOnly = true.",
+      "cwe": ["CWE-1004"],
+      "asvs": ["V7"],
+      "owasp": ["A07:2025"]
+    },
+    {
+      "id": "SF-AUTH-004",
+      "control": "authentication",
+      "title": "Cookie SecurePolicy disabled",
+      "kind": "analyzer",
+      "mode": "finding",
+      "severity": "high",
+      "confidence": "high",
+      "include": ["**/*.cs"],
+      "message": "Cookie authentication permits transmission over HTTP because SecurePolicy is None.",
+      "remediation": "Set Cookie.SecurePolicy = CookieSecurePolicy.Always outside local development.",
+      "cwe": ["CWE-614"],
+      "asvs": ["V7"],
+      "owasp": ["A07:2025"]
+    },
+    {
+      "id": "SF-AUTH-005",
+      "control": "authentication",
+      "title": "JWT metadata HTTPS disabled",
+      "kind": "analyzer",
+      "mode": "finding",
+      "severity": "medium",
+      "confidence": "high",
+      "include": ["**/*.cs"],
+      "message": "RequireHttpsMetadata is false, allowing token metadata retrieval over plain HTTP.",
+      "remediation": "Set RequireHttpsMetadata = true and use an HTTPS authority.",
+      "cwe": ["CWE-295"],
+      "asvs": ["V9"],
+      "owasp": ["A07:2025"]
+    },
+    {
+      "id": "SF-AUTHZ-001",
+      "control": "authorization",
+      "title": "Mutating endpoint is not authorized",
+      "kind": "analyzer",
+      "mode": "finding",
+      "severity": "critical",
+      "confidence": "high",
+      "include": ["**/*.cs"],
+      "message": "A mutating endpoint has no controller/action authorization and no deny-by-default fallback policy.",
+      "remediation": "Add [Authorize] or an explicit policy, or configure a fallback policy requiring authentication; document genuinely public endpoints.",
+      "cwe": ["CWE-862", "CWE-306"],
+      "asvs": ["V8.2.1", "V8.3.1"],
+      "owasp": ["A01:2025"]
+    },
+    {
+      "id": "SF-INJ-001",
+      "control": "injection-prevention",
+      "title": "Dynamic SQL construction",
+      "kind": "analyzer",
+      "mode": "finding",
+      "severity": "critical",
+      "confidence": "high",
+      "include": ["**/*.cs"],
+      "message": "A SQL query is built with interpolation or concatenation instead of parameters.",
+      "remediation": "Use parameterized queries (SqlParameter/SqliteParameter/Parameters.Add), FromSqlInterpolated, or a parameter object for Dapper.",
+      "cwe": ["CWE-89"],
+      "asvs": ["V1.2.4"],
+      "owasp": ["A05:2025"]
+    },
+    {
+      "id": "SF-INJ-002",
+      "control": "injection-prevention",
+      "title": "Dynamic OS command construction",
+      "kind": "analyzer",
+      "mode": "finding",
+      "severity": "critical",
+      "confidence": "high",
+      "include": ["**/*.cs"],
+      "message": "An OS process is started with interpolated or concatenated arguments, allowing command injection.",
+      "remediation": "Use a fixed executable and ProcessStartInfo.ArgumentList; never invoke cmd.exe or a shell with untrusted input.",
+      "cwe": ["CWE-78"],
+      "asvs": ["V1.2.5"],
+      "owasp": ["A05:2025"]
+    },
+    {
+      "id": "SF-INJ-003",
+      "control": "injection-prevention",
+      "title": "Unresolved OS command arguments",
+      "kind": "analyzer",
+      "mode": "review",
+      "severity": "medium",
+      "confidence": "medium",
+      "include": ["**/*.cs"],
+      "message": "Process execution arguments could not be resolved statically and require manual review.",
+      "remediation": "Show a fixed executable and an ArgumentList constructed from validated values, or document why the command is not attacker-controlled.",
+      "cwe": ["CWE-78"],
+      "asvs": ["V1.2.5"],
+      "owasp": ["A05:2025"]
+    },
+    {
+      "id": "SF-INJ-004",
+      "control": "injection-prevention",
+      "title": "Unresolved SQL command",
+      "kind": "analyzer",
+      "mode": "review",
+      "severity": "medium",
+      "confidence": "medium",
+      "include": ["**/*.cs"],
+      "message": "A SQL command text comes from a variable or helper and cannot be proven constant or parameterized.",
+      "remediation": "Use a constant, parameterized command or FromSqlInterpolated; provide test evidence for any query builder.",
+      "cwe": ["CWE-89"],
+      "asvs": ["V1.2.4"],
+      "owasp": ["A05:2025"]
+    }
+  ]
+}

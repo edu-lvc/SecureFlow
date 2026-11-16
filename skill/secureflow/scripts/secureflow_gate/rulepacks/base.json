@@ -1,0 +1,163 @@
+{
+  "schema_version": "secureflow.rulepack/v1",
+  "id": "base",
+  "description": "Cross-language baseline: secret detection and control metadata.",
+  "controls": [
+    {
+      "id": "input-validation",
+      "title": "Input validation",
+      "description": "Untrusted input is constrained at a trusted server-side layer.",
+      "analyzers": []
+    },
+    {
+      "id": "authentication",
+      "title": "Authentication",
+      "description": "Identity is established with an active, securely configured mechanism.",
+      "analyzers": []
+    },
+    {
+      "id": "authorization",
+      "title": "Authorization",
+      "description": "Sensitive operations and objects require explicit permission.",
+      "analyzers": []
+    },
+    {
+      "id": "secrets-management",
+      "title": "Secrets management",
+      "description": "Credentials are not stored in source and are loaded from a managed provider.",
+      "analyzers": ["secrets"]
+    },
+    {
+      "id": "injection-prevention",
+      "title": "Injection prevention",
+      "description": "Queries and OS commands cannot be structurally altered by untrusted input.",
+      "analyzers": []
+    }
+  ],
+  "rules": [
+    {
+      "id": "SF-SEC-001",
+      "control": "secrets-management",
+      "title": "Hardcoded credential",
+      "kind": "regex",
+      "mode": "finding",
+      "severity": "high",
+      "confidence": "high",
+      "include": [
+        "**/*.cs",
+        "**/*.json",
+        "**/*.config",
+        "**/*.xml",
+        "**/*.yml",
+        "**/*.yaml",
+        "**/*.env",
+        "**/.env*",
+        "**/*.props",
+        "**/*.targets",
+        "**/*.csproj",
+        "**/*.ps1",
+        "**/*.sh",
+        "**/Dockerfile"
+      ],
+      "pattern": "(?i)\\b(password|passwd|pwd|secret|api[_-]?key|apikey|access[_-]?key|client[_-]?secret|private[_-]?key|jwt[_-]?key|signing[_-]?key)\\b[\"']?\\s*(?::=|=(?!=)|:)\\s*[\"'][^\"']{8,}[\"']",
+      "allow_pattern": "(?i)(example|sample|dummy|placeholder|changeme|change-me|your[-_ ]|replace[-_ ]|redacted|not[-_ ]a[-_ ]secret|test[-_ ]?only|\\$\\{|\\{\\{|%[A-Z_]+%|<[^>]+>)",
+      "flags": "",
+      "message": "A credential-like value is assigned literally in source or configuration.",
+      "remediation": "Remove the value, rotate it if it was real, and load the secret from a managed provider or environment-specific secret store.",
+      "cwe": ["CWE-798", "CWE-259"],
+      "asvs": ["V13.3.1"],
+      "owasp": ["A02:2025", "A04:2025"],
+      "min_matches": 1
+    },
+    {
+      "id": "SF-SEC-002",
+      "control": "secrets-management",
+      "title": "Private key material",
+      "kind": "regex",
+      "mode": "finding",
+      "severity": "critical",
+      "confidence": "high",
+      "include": [
+        "**/*.cs",
+        "**/*.json",
+        "**/*.config",
+        "**/*.xml",
+        "**/*.yml",
+        "**/*.yaml",
+        "**/*.pem",
+        "**/*.key",
+        "**/*.ps1",
+        "**/*.sh"
+      ],
+      "pattern": "-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----",
+      "allow_pattern": "",
+      "flags": "",
+      "message": "Private key material is present in a scanned file.",
+      "remediation": "Remove and rotate the key, store it in a hardware-backed or managed secret store, and purge it from history.",
+      "cwe": ["CWE-321"],
+      "asvs": ["V13.3.1"],
+      "owasp": ["A04:2025"],
+      "min_matches": 1
+    },
+    {
+      "id": "SF-SEC-003",
+      "control": "secrets-management",
+      "title": "Recognizable access token",
+      "kind": "regex",
+      "mode": "finding",
+      "severity": "critical",
+      "confidence": "high",
+      "include": [
+        "**/*.cs",
+        "**/*.json",
+        "**/*.config",
+        "**/*.yml",
+        "**/*.yaml",
+        "**/*.env",
+        "**/.env*",
+        "**/*.ps1",
+        "**/*.sh",
+        "**/Dockerfile"
+      ],
+      "pattern": "(?i)\\b(AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|sk_live_[A-Za-z0-9]{10,}|sk-[A-Za-z0-9]{20,})\\b",
+      "allow_pattern": "(?i)(example|sample|dummy|placeholder|your[-_ ]|redacted|not[-_ ]a[-_ ]secret)",
+      "flags": "",
+      "message": "A token matching a known credential format is present.",
+      "remediation": "Revoke the token, remove it from source and history, and load it from a secret provider at runtime.",
+      "cwe": ["CWE-798"],
+      "asvs": ["V13.3.1"],
+      "owasp": ["A02:2025"],
+      "min_matches": 1
+    },
+    {
+      "id": "SF-SEC-004",
+      "control": "secrets-management",
+      "title": "Connection string credential",
+      "kind": "regex",
+      "mode": "finding",
+      "severity": "high",
+      "confidence": "high",
+      "include": [
+        "**/*.cs",
+        "**/*.json",
+        "**/*.config",
+        "**/*.xml",
+        "**/*.yml",
+        "**/*.yaml",
+        "**/*.env",
+        "**/.env*",
+        "**/*.ps1",
+        "**/*.sh"
+      ],
+      "pattern": "(?i)\\b(Password|Pwd)\\s*=\\s*[^;\"'\\s]{6,}",
+      "allow_pattern": "(?i)(example|sample|dummy|placeholder|changeme|change-me|your[-_ ]|replace[-_ ]|redacted|\\$\\{|\\{\\{|%[A-Z_]+%|<[^>]+>)",
+      "flags": "",
+      "message": "A connection string contains a literal password.",
+      "remediation": "Use integrated authentication or load the credential from a secret provider; rotate the exposed password.",
+      "cwe": ["CWE-798"],
+      "asvs": ["V13.3.1"],
+      "owasp": ["A02:2025"],
+      "min_matches": 1
+    }
+  ]
+}

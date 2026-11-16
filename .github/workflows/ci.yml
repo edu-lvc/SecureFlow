@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }}, Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Gate smoke test
+        run: python tests/ci_gate_smoke.py
+
+  dotnet-examples:
+    name: Build C# examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Build secure example
+        run: dotnet build examples/csharp-secure/SecureOrders.Api/SecureOrders.Api.csproj --nologo
+      - name: Build vulnerable example
+        run: dotnet build examples/csharp-vulnerable/VulnerableOrders.Api/VulnerableOrders.Api.csproj --nologo

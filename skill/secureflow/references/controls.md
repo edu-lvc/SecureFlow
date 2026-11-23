@@ -1,6 +1,6 @@
 # Baseline Security Controls
 
-This reference defines the five controls verified by SecureFlow Gate 0.1 for C# and ASP.NET
+This reference defines the six controls verified by SecureFlow Gate 0.2 for C# and ASP.NET
 Core. Each control has requirements, positive evidence, common failures, and the exact static
 checks implemented by the gate. Static checks are evidence, not a complete security proof.
 
@@ -257,6 +257,53 @@ Gate checks:
 Limitations: static matching does not prove exploitability. It can miss reflection, dynamic
 dispatch, custom data access layers, stored procedure bodies, and framework-specific APIs. It is
 intentionally conservative: an unresolved case becomes `UNVERIFIED`, not `PASS`.
+
+## 6. Security logging
+
+**Goal:** security-relevant events are observable through application logs without leaking
+sensitive data, so incident response and detection engineering can reconstruct what happened.
+
+Requirements:
+
+- `REQ-LOG-001`: A logging infrastructure is registered and available to application code.
+- `REQ-LOG-002`: Authentication success and failure are logged without credentials.
+- `REQ-LOG-003`: Authorization denials and administrative actions are logged.
+- `REQ-LOG-004`: Logs do not contain secrets, tokens, or personally sensitive data.
+- `REQ-LOG-005`: Logs include enough context (event IDs, correlation IDs, timestamps) for
+  investigation.
+
+Positive evidence:
+
+- `ILogger<T>` injection or `ILoggerFactory` usage.
+- `LoggerMessage.Define` for high-performance security events.
+- Explicit log calls near authentication, authorization, and administrative operations with
+  security-relevant keywords.
+- Logging providers such as Serilog or NLog configured in `Program.cs` or `appsettings.json`.
+
+Negative evidence / failures:
+
+- Web application surface with no recognized logging infrastructure (`UNVERIFIED`).
+- Logging infrastructure present but no explicit security-relevant events (`UNVERIFIED`).
+- Log messages that include passwords, tokens, or raw user input.
+- Security events written only to ephemeral or client-side storage.
+
+Verification:
+
+| ASVS 5.0 | OWASP Top 10:2025 | CWE | SSDF |
+| --- | --- | --- | --- |
+| V16 | A09 Security Logging and Alerting Failures | CWE-778 | PW.5, PW.7 |
+
+Gate checks:
+
+- `SF-LOG-001` — no recognized logging infrastructure in a web project (`UNVERIFIED`).
+- `SF-LOG-002` — security-relevant events are not explicitly logged (`UNVERIFIED`).
+- Detection of `ILogger`, Serilog, NLog, `LoggerMessage.Define`, and explicit auth/authz/admin
+  log calls.
+- No web surface: `NOT_APPLICABLE`.
+
+Limitations: the gate cannot prove that logs are actually emitted at runtime, that they reach a
+remote sink, or that they exclude secrets. It only verifies infrastructure presence and explicit
+security-event log calls. Review log sinks, retention, and redaction manually.
 
 ## Control status aggregation
 

@@ -92,6 +92,7 @@ class EngineStatusTests(GateTestCase):
         self.assertEqual("UNVERIFIED", statuses["authorization"])
         self.assertEqual("UNVERIFIED", statuses["input-validation"])
         self.assertEqual("NOT_APPLICABLE", statuses["injection-prevention"])
+        self.assertEqual("UNVERIFIED", statuses["security-logging"])
         self.assertEqual("UNVERIFIED", report["summary"]["overall_status"])
 
     def test_injection_positive_and_negative_cases(self) -> None:
@@ -222,13 +223,16 @@ app.MapPost("/status", () => Results.Ok());
         self.assertEqual({"PASS"}, set(control_statuses(report).values()))
         self.assertEqual([], report["findings"])
 
-    def test_vulnerable_example_fails_every_control(self) -> None:
+    def test_vulnerable_example_fails_baseline_controls_and_logs_are_unverified(self) -> None:
         report = scan(EXAMPLES / "csharp-vulnerable" / "VulnerableOrders.Api")
         self.assertEqual("FAIL", report["summary"]["overall_status"])
-        self.assertEqual(
-            {"FAIL"},
-            set(control_statuses(report).values()),
-        )
+        statuses = control_statuses(report)
+        self.assertEqual("FAIL", statuses["authentication"])
+        self.assertEqual("FAIL", statuses["authorization"])
+        self.assertEqual("FAIL", statuses["input-validation"])
+        self.assertEqual("FAIL", statuses["injection-prevention"])
+        self.assertEqual("FAIL", statuses["secrets-management"])
+        self.assertEqual("UNVERIFIED", statuses["security-logging"])
         self.assert_rules(
             report,
             [
@@ -241,6 +245,8 @@ app.MapPost("/status", () => Results.Ok());
                 "SF-SEC-001",
                 "SF-SEC-004",
                 "SF-VAL-001",
+                "SF-LOG-001",
+                "SF-LOG-002",
             ],
         )
 
@@ -314,6 +320,7 @@ app.MapPost("/status", () => Results.Ok());
                 "injection-prevention",
                 "input-validation",
                 "secrets-management",
+                "security-logging",
             ],
             [item["id"] for item in report["controls"]],
         )

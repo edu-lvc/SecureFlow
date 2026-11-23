@@ -1,0 +1,48 @@
+{
+  "schema_version": "secureflow.mitre-mapping/v1",
+  "description": "Curated mapping between SecureFlow findings and MITRE ATT&CK techniques. Only techniques with a direct causal link to a finding are included.",
+  "techniques": {
+    "T1059": {
+      "name": "Command and Scripting Interpreter",
+      "tactics": ["Execution"],
+      "description": "Adversaries may abuse command and script interpreters to execute commands, scripts, or binaries.",
+      "applicable_controls": ["injection-prevention"],
+      "telemetry_sources": ["sysmon", "wazuh", "sentinel", "elastic", "splunk"]
+    },
+    "T1078": {
+      "name": "Valid Accounts",
+      "tactics": ["Initial Access", "Persistence", "Privilege Escalation", "Defense Evasion"],
+      "description": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access.",
+      "applicable_controls": ["authentication", "authorization"],
+      "telemetry_sources": ["windows_security", "okta", "azure_ad", "wazuh", "sentinel", "elastic", "splunk"]
+    },
+    "T1190": {
+      "name": "Exploit Public-Facing Application",
+      "tactics": ["Initial Access"],
+      "description": "Adversaries may attempt to exploit a weakness in an Internet-facing computer or program using software, data, or commands.",
+      "applicable_controls": ["input-validation", "injection-prevention"],
+      "telemetry_sources": ["web_server_logs", "wazuh", "sentinel", "elastic", "splunk"]
+    },
+    "T1552": {
+      "name": "Unsecured Credentials",
+      "tactics": ["Credential Access"],
+      "description": "Adversaries may search compromised systems to find and obtain insecurely stored credentials.",
+      "applicable_controls": ["secrets-management"],
+      "telemetry_sources": ["endpoint_files", "wazuh", "sentinel", "elastic", "splunk"]
+    },
+    "T1557": {
+      "name": "Adversary-in-the-Middle",
+      "tactics": ["Credential Access"],
+      "description": "Adversaries may attempt to position themselves between two or more networked devices using a man-in-the-middle technique.",
+      "applicable_controls": ["authentication"],
+      "telemetry_sources": ["network_ids", "wazuh", "sentinel"]
+    },
+    "T1562": {
+      "name": "Impair Defenses",
+      "tactics": ["Defense Evasion"],
+      "description": "Adversaries may maliciously modify components of a victim environment in order to hinder or disable defensive mechanisms.",
+      "applicable_controls": ["security-logging"],
+      "telemetry_sources": ["windows_security", "sysmon", "wazuh", "sentinel", "elastic", "splunk"]
+    }
+  }
+}

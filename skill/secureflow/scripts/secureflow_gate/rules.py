@@ -55,6 +55,8 @@ class Rule:
     asvs: List[str]
     owasp: List[str]
     min_matches: int = 1
+    mitre_attack: List[str] = field(default_factory=list)
+    telemetry_sources: List[str] = field(default_factory=list)
     regex: Optional[re.Pattern[str]] = field(default=None, repr=False)
     allow_regex: Optional[re.Pattern[str]] = field(default=None, repr=False)
 
@@ -78,6 +80,8 @@ class Rule:
             "asvs": list(self.asvs),
             "owasp": list(self.owasp),
             "min_matches": self.min_matches,
+            "mitre_attack": list(self.mitre_attack),
+            "telemetry_sources": list(self.telemetry_sources),
         }
 
 
@@ -192,6 +196,17 @@ def _parse_rule(data: dict, controls: Dict[str, ControlDef]) -> Rule:
     if not isinstance(min_matches, int) or min_matches < 1:
         raise RulePackError("rule %s min_matches must be a positive integer" % rule_id)
 
+    mitre_attack = data.get("mitre_attack", [])
+    if not isinstance(mitre_attack, list) or not all(isinstance(item, str) and item for item in mitre_attack):
+        raise RulePackError("rule %s mitre_attack must be a list of non-empty strings" % rule_id)
+    for item in mitre_attack:
+        if not re.match(r"^T[0-9]{4}(\.[0-9]{3})?$", item):
+            raise RulePackError("rule %s has invalid MITRE ATT&CK technique id: %s" % (rule_id, item))
+
+    telemetry_sources = data.get("telemetry_sources", [])
+    if not isinstance(telemetry_sources, list) or not all(isinstance(item, str) and item for item in telemetry_sources):
+        raise RulePackError("rule %s telemetry_sources must be a list of non-empty strings" % rule_id)
+
     return Rule(
         id=rule_id,
         control=control,
@@ -211,6 +226,8 @@ def _parse_rule(data: dict, controls: Dict[str, ControlDef]) -> Rule:
         asvs=_string_list(data, "asvs", rule_id),
         owasp=_string_list(data, "owasp", rule_id),
         min_matches=min_matches,
+        mitre_attack=mitre_attack,
+        telemetry_sources=telemetry_sources,
         regex=regex,
         allow_regex=allow_regex,
     )

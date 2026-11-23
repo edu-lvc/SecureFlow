@@ -7,25 +7,41 @@
       "id": "input-validation",
       "title": "Input validation",
       "description": "ASP.NET Core model validation is active and not globally suppressed.",
-      "analyzers": ["input-validation"]
+      "analyzers": [
+        "input-validation"
+      ]
     },
     {
       "id": "authentication",
       "title": "Authentication",
       "description": "Authentication is registered, invoked, and configured with secure cookie and token settings.",
-      "analyzers": ["authentication"]
+      "analyzers": [
+        "authentication"
+      ]
     },
     {
       "id": "authorization",
       "title": "Authorization",
       "description": "Mutating endpoints require an authenticated principal or a deny-by-default policy.",
-      "analyzers": ["authorization"]
+      "analyzers": [
+        "authorization"
+      ]
     },
     {
       "id": "injection-prevention",
       "title": "Injection prevention",
       "description": "SQL and OS command sinks are parameterized and avoid dynamic command construction.",
-      "analyzers": ["injection"]
+      "analyzers": [
+        "injection"
+      ]
+    },
+    {
+      "id": "security-logging",
+      "title": "Security logging",
+      "description": "ASP.NET Core application logs security-relevant events such as authentication, authorization and administrative actions.",
+      "analyzers": [
+        "security-logging"
+      ]
     }
   ],
   "rules": [
@@ -37,12 +53,32 @@
       "mode": "finding",
       "severity": "high",
       "confidence": "high",
-      "include": ["**/*.cs"],
+      "include": [
+        "**/*.cs"
+      ],
       "message": "SuppressModelStateInvalidFilter is enabled and no manual validation was detected.",
       "remediation": "Remove the global suppression, or validate ModelState/FluentValidation explicitly before using the input.",
-      "cwe": ["CWE-20"],
-      "asvs": ["V2.2.1", "V2.2.2"],
-      "owasp": ["A06:2025", "A05:2025"]
+      "cwe": [
+        "CWE-20"
+      ],
+      "asvs": [
+        "V2.2.1",
+        "V2.2.2"
+      ],
+      "owasp": [
+        "A06:2025",
+        "A05:2025"
+      ],
+      "mitre_attack": [
+        "T1190"
+      ],
+      "telemetry_sources": [
+        "web_server_logs",
+        "wazuh",
+        "sentinel",
+        "elastic",
+        "splunk"
+      ]
     },
     {
       "id": "SF-AUTH-001",
@@ -52,12 +88,33 @@
       "mode": "finding",
       "severity": "high",
       "confidence": "high",
-      "include": ["**/*.cs"],
+      "include": [
+        "**/*.cs"
+      ],
       "message": "Authentication services are registered but UseAuthentication is missing, so requests are not authenticated.",
       "remediation": "Call app.UseAuthentication() before app.UseAuthorization() and before mapped endpoints.",
-      "cwe": ["CWE-287", "CWE-306"],
-      "asvs": ["V6.3.1"],
-      "owasp": ["A07:2025"]
+      "cwe": [
+        "CWE-287",
+        "CWE-306"
+      ],
+      "asvs": [
+        "V6.3.1"
+      ],
+      "owasp": [
+        "A07:2025"
+      ],
+      "mitre_attack": [
+        "T1078"
+      ],
+      "telemetry_sources": [
+        "windows_security",
+        "okta",
+        "azure_ad",
+        "wazuh",
+        "sentinel",
+        "elastic",
+        "splunk"
+      ]
     },
     {
       "id": "SF-AUTH-003",
@@ -67,12 +124,30 @@
       "mode": "finding",
       "severity": "high",
       "confidence": "high",
-      "include": ["**/*.cs"],
+      "include": [
+        "**/*.cs"
+      ],
       "message": "Cookie authentication sets HttpOnly to false, exposing the session cookie to script.",
       "remediation": "Set Cookie.HttpOnly = true.",
-      "cwe": ["CWE-1004"],
-      "asvs": ["V7"],
-      "owasp": ["A07:2025"]
+      "cwe": [
+        "CWE-1004"
+      ],
+      "asvs": [
+        "V7"
+      ],
+      "owasp": [
+        "A07:2025"
+      ],
+      "mitre_attack": [
+        "T1078"
+      ],
+      "telemetry_sources": [
+        "windows_security",
+        "wazuh",
+        "sentinel",
+        "elastic",
+        "splunk"
+      ]
     },
     {
       "id": "SF-AUTH-004",
@@ -82,12 +157,30 @@
       "mode": "finding",
       "severity": "high",
       "confidence": "high",
-      "include": ["**/*.cs"],
+      "include": [
+        "**/*.cs"
+      ],
       "message": "Cookie authentication permits transmission over HTTP because SecurePolicy is None.",
       "remediation": "Set Cookie.SecurePolicy = CookieSecurePolicy.Always outside local development.",
-      "cwe": ["CWE-614"],
-      "asvs": ["V7"],
-      "owasp": ["A07:2025"]
+      "cwe": [
+        "CWE-614"
+      ],
+      "asvs": [
+        "V7"
+      ],
+      "owasp": [
+        "A07:2025"
+      ],
+      "mitre_attack": [
+        "T1078"
+      ],
+      "telemetry_sources": [
+        "windows_security",
+        "wazuh",
+        "sentinel",
+        "elastic",
+        "splunk"
+      ]
     },
     {
       "id": "SF-AUTH-005",
@@ -97,12 +190,28 @@
       "mode": "finding",
       "severity": "medium",
       "confidence": "high",
-      "include": ["**/*.cs"],
+      "include": [
+        "**/*.cs"
+      ],
       "message": "RequireHttpsMetadata is false, allowing token metadata retrieval over plain HTTP.",
       "remediation": "Set RequireHttpsMetadata = true and use an HTTPS authority.",
-      "cwe": ["CWE-295"],
-      "asvs": ["V9"],
-      "owasp": ["A07:2025"]
+      "cwe": [
+        "CWE-295"
+      ],
+      "asvs": [
+        "V9"
+      ],
+      "owasp": [
+        "A07:2025"
+      ],
+      "mitre_attack": [
+        "T1557"
+      ],
+      "telemetry_sources": [
+        "network_ids",
+        "wazuh",
+        "sentinel"
+      ]
     },
     {
       "id": "SF-AUTHZ-001",
@@ -112,12 +221,34 @@
       "mode": "finding",
       "severity": "critical",
       "confidence": "high",
-      "include": ["**/*.cs"],
+      "include": [
+        "**/*.cs"
+      ],
       "message": "A mutating endpoint has no controller/action authorization and no deny-by-default fallback policy.",
       "remediation": "Add [Authorize] or an explicit policy, or configure a fallback policy requiring authentication; document genuinely public endpoints.",
-      "cwe": ["CWE-862", "CWE-306"],
-      "asvs": ["V8.2.1", "V8.3.1"],
-      "owasp": ["A01:2025"]
+      "cwe": [
+        "CWE-862",
+        "CWE-306"
+      ],
+      "asvs": [
+        "V8.2.1",
+        "V8.3.1"
+      ],
+      "owasp": [
+        "A01:2025"
+      ],
+      "mitre_attack": [
+        "T1078"
+      ],
+      "telemetry_sources": [
+        "windows_security",
+        "okta",
+        "azure_ad",
+        "wazuh",
+        "sentinel",
+        "elastic",
+        "splunk"
+      ]
     },
     {
       "id": "SF-INJ-001",
@@ -127,12 +258,30 @@
       "mode": "finding",
       "severity": "critical",
       "confidence": "high",
-      "include": ["**/*.cs"],
+      "include": [
+        "**/*.cs"
+      ],
       "message": "A SQL query is built with interpolation or concatenation instead of parameters.",
       "remediation": "Use parameterized queries (SqlParameter/SqliteParameter/Parameters.Add), FromSqlInterpolated, or a parameter object for Dapper.",
-      "cwe": ["CWE-89"],
-      "asvs": ["V1.2.4"],
-      "owasp": ["A05:2025"]
+      "cwe": [
+        "CWE-89"
+      ],
+      "asvs": [
+        "V1.2.4"
+      ],
+      "owasp": [
+        "A05:2025"
+      ],
+      "mitre_attack": [
+        "T1190"
+      ],
+      "telemetry_sources": [
+        "web_server_logs",
+        "wazuh",
+        "sentinel",
+        "elastic",
+        "splunk"
+      ]
     },
     {
       "id": "SF-INJ-002",
@@ -142,12 +291,30 @@
       "mode": "finding",
       "severity": "critical",
       "confidence": "high",
-      "include": ["**/*.cs"],
+      "include": [
+        "**/*.cs"
+      ],
       "message": "An OS process is started with interpolated or concatenated arguments, allowing command injection.",
       "remediation": "Use a fixed executable and ProcessStartInfo.ArgumentList; never invoke cmd.exe or a shell with untrusted input.",
-      "cwe": ["CWE-78"],
-      "asvs": ["V1.2.5"],
-      "owasp": ["A05:2025"]
+      "cwe": [
+        "CWE-78"
+      ],
+      "asvs": [
+        "V1.2.5"
+      ],
+      "owasp": [
+        "A05:2025"
+      ],
+      "mitre_attack": [
+        "T1059"
+      ],
+      "telemetry_sources": [
+        "sysmon",
+        "wazuh",
+        "sentinel",
+        "elastic",
+        "splunk"
+      ]
     },
     {
       "id": "SF-INJ-003",
@@ -157,12 +324,30 @@
       "mode": "review",
       "severity": "medium",
       "confidence": "medium",
-      "include": ["**/*.cs"],
+      "include": [
+        "**/*.cs"
+      ],
       "message": "Process execution arguments could not be resolved statically and require manual review.",
       "remediation": "Show a fixed executable and an ArgumentList constructed from validated values, or document why the command is not attacker-controlled.",
-      "cwe": ["CWE-78"],
-      "asvs": ["V1.2.5"],
-      "owasp": ["A05:2025"]
+      "cwe": [
+        "CWE-78"
+      ],
+      "asvs": [
+        "V1.2.5"
+      ],
+      "owasp": [
+        "A05:2025"
+      ],
+      "mitre_attack": [
+        "T1059"
+      ],
+      "telemetry_sources": [
+        "sysmon",
+        "wazuh",
+        "sentinel",
+        "elastic",
+        "splunk"
+      ]
     },
     {
       "id": "SF-INJ-004",
@@ -172,12 +357,98 @@
       "mode": "review",
       "severity": "medium",
       "confidence": "medium",
-      "include": ["**/*.cs"],
+      "include": [
+        "**/*.cs"
+      ],
       "message": "A SQL command text comes from a variable or helper and cannot be proven constant or parameterized.",
       "remediation": "Use a constant, parameterized command or FromSqlInterpolated; provide test evidence for any query builder.",
-      "cwe": ["CWE-89"],
-      "asvs": ["V1.2.4"],
-      "owasp": ["A05:2025"]
+      "cwe": [
+        "CWE-89"
+      ],
+      "asvs": [
+        "V1.2.4"
+      ],
+      "owasp": [
+        "A05:2025"
+      ],
+      "mitre_attack": [
+        "T1190"
+      ],
+      "telemetry_sources": [
+        "web_server_logs",
+        "wazuh",
+        "sentinel",
+        "elastic",
+        "splunk"
+      ]
+    },
+    {
+      "id": "SF-LOG-001",
+      "control": "security-logging",
+      "title": "No logging infrastructure detected",
+      "kind": "analyzer",
+      "mode": "review",
+      "severity": "medium",
+      "confidence": "medium",
+      "include": [
+        "**/*.cs"
+      ],
+      "message": "The application has HTTP endpoints but no recognized logging infrastructure was detected.",
+      "remediation": "Add an ILogger-based logging provider (Microsoft.Extensions.Logging, Serilog, NLog) and inject ILogger into controllers/services.",
+      "cwe": [
+        "CWE-778"
+      ],
+      "asvs": [
+        "V16"
+      ],
+      "owasp": [
+        "A09:2025"
+      ],
+      "mitre_attack": [
+        "T1562"
+      ],
+      "telemetry_sources": [
+        "windows_security",
+        "sysmon",
+        "wazuh",
+        "sentinel",
+        "elastic",
+        "splunk"
+      ]
+    },
+    {
+      "id": "SF-LOG-002",
+      "control": "security-logging",
+      "title": "Security events not explicitly logged",
+      "kind": "analyzer",
+      "mode": "review",
+      "severity": "medium",
+      "confidence": "medium",
+      "include": [
+        "**/*.cs"
+      ],
+      "message": "Authentication, authorization or administrative events may not be explicitly logged.",
+      "remediation": "Log authentication success/failure, authorization denials and administrative actions using ILogger with explicit event IDs or LoggerMessage.Define.",
+      "cwe": [
+        "CWE-778"
+      ],
+      "asvs": [
+        "V16"
+      ],
+      "owasp": [
+        "A09:2025"
+      ],
+      "mitre_attack": [
+        "T1562"
+      ],
+      "telemetry_sources": [
+        "windows_security",
+        "sysmon",
+        "wazuh",
+        "sentinel",
+        "elastic",
+        "splunk"
+      ]
     }
   ]
 }

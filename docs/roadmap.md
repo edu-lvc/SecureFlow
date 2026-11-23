@@ -16,7 +16,13 @@ based on pilot feedback, security reports, and ecosystem demand.
 Status: current.
 
 - [x] Portable `SKILL.md` and progressive-disclosure references.
-- [x] Five-control C#/ASP.NET Core gate with four statuses.
+- [x] Six-control C#/ASP.NET Core gate with four statuses.
+- [x] Security logging analyzer that distinguishes infrastructure from events.
+- [x] MITRE ATT&CK mapping, telemetry source metadata, and Sigma rule generation.
+- [x] Detection coverage ledger in gate reports.
+- [x] pfSense firewall audit, plan, and apply commands.
+- [x] Incident response templates.
+- [x] Optional Wazuh adapter stub.
 - [x] Claims audit and contradiction detection.
 - [x] Time-bounded policy suppressions with audit evidence.
 - [x] Tamper-evident JSON report and verification command.
@@ -27,8 +33,12 @@ Status: current.
 - [ ] Collect pilot reports from real projects and classify false positives and false negatives.
 - [ ] Add a small SARIF exporter for code-scanning integrations.
 
-## 0.2 — Deeper C# and ASP.NET Core coverage
+## 0.2 — Detection Engineering, firewall expansion, and deeper C#
 
+- [x] Curated MITRE ATT&CK mapping and Sigma generation from gate findings.
+- [ ] Improve Sigma rule fidelity for C# controls (more specific selection logic).
+- [ ] Add coverage-gap analysis by control and MITRE technique.
+- [ ] Add OPNsense firewall parser and analyzer.
 - [ ] Recognize `record` controllers and broaden endpoint discovery beyond conventional
   controllers and mutating minimal API methods.
 - [ ] Add object-level authorization review cues: owner/tenant parameters, `FindAsync`/query by
@@ -87,12 +97,12 @@ SecureFlow is not planned to become:
 
 - a runtime DAST or penetration-testing platform;
 - a dependency or container vulnerability scanner;
-- a SIEM, SOC, or incident-response product;
+- a SIEM, SOC, or full incident-response product;
 - a certification or compliance attestation service;
 - an autonomous exploit generator.
 
-Those problems need dedicated tools and human accountability. SecureFlow should integrate with
-them, not pretend to replace them.
+It provides optional stubs and templates that feed into SIEM/SOC workflows, but those workflows
+remain the responsibility of dedicated tools and human operators.
 
 ## How to influence the roadmap
 

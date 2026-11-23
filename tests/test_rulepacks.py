@@ -23,6 +23,7 @@ class RulePackTests(GateTestCase):
                 "injection-prevention",
                 "input-validation",
                 "secrets-management",
+                "security-logging",
             ],
             list(self.profile.controls),
         )

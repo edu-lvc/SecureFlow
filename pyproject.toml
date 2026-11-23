@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "secureflow-gate"
-version = "0.1.0"
+version = "0.2.1"
 description = "Evidence-based security gate for the SecureFlow Agent Skill"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -28,7 +28,17 @@ secureflow-gate = "secureflow_gate.cli:main"
 
 [tool.setuptools]
 package-dir = { "" = "skill/secureflow/scripts" }
-packages = ["secureflow_gate", "secureflow_gate.rulepacks", "secureflow_gate.schema"]
+packages = [
+  "secureflow_gate",
+  "secureflow_gate.data",
+  "secureflow_gate.data.incident",
+  "secureflow_gate.detections",
+  "secureflow_gate.firewall",
+  "secureflow_gate.rulepacks",
+  "secureflow_gate.schema",
+]
 
 [tool.setuptools.package-data]
-secureflow_gate = ["rulepacks/*.json", "schema/*.json"]
+"secureflow_gate" = ["rulepacks/*.json", "schema/*.json", "data/*.json"]
+"secureflow_gate.data" = ["incident/*.md"]
+"secureflow_gate.firewall" = ["data/*.json"]

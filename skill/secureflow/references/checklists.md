@@ -77,6 +77,18 @@ marked `PASS`, `FAIL`, `UNVERIFIED`, or `NOT_APPLICABLE` with evidence.
 - [ ] Output is encoded for its context (HTML, attribute, URL, JavaScript, CSS).
 - [ ] Tests include SQL and command-injection payloads.
 
+## Security logging
+
+- [ ] A logging infrastructure (`ILogger`, Serilog, NLog, etc.) is registered and injected.
+- [ ] Authentication success, authentication failure, and authorization denials are logged.
+- [ ] Administrative and data-mutating actions are logged with context.
+- [ ] Logs do not contain passwords, tokens, session identifiers, or raw personal data.
+- [ ] Event IDs or `LoggerMessage.Define` make security events easy to alert on.
+- [ ] Log sinks, retention, and remote forwarding are configured.
+- [ ] Time is synchronized (NTP) so event timelines are reliable.
+- [ ] The gate's finding is `PASS` only when infrastructure and explicit security events are
+      present; `UNVERIFIED` is acceptable while logs are being instrumented.
+
 ## Error handling and logging
 
 - [ ] Production errors are generic to the client.

@@ -6,18 +6,25 @@ interpret a result.
 
 ## Scope of verification
 
-- **Five controls only.** The baseline profile verifies input validation, authentication,
-  authorization, secrets management, and injection prevention. It does not verify cryptography,
-  session management beyond selected cookie/JWT flags, CSRF, SSRF, deserialization, file upload,
-  logging, rate limiting, transport security, business logic, or cloud configuration.
-- **C# and ASP.NET Core only.** `csharp-aspnetcore` is the only deeply validated profile. `base`
-  is a cross-language secrets and generic-pattern profile, not a framework analyzer. Other
-  ecosystems need new rule packs and tests, and should be labeled experimental.
-- **Static analysis only by default.** The gate reads files. It does not run the application,
-  exercise endpoints, inspect a database, or test runtime policy behavior. A static `PASS` can
-  miss a vulnerability that only appears at runtime.
+- **Six baseline controls.** The `csharp-aspnetcore` profile verifies input validation,
+  authentication, authorization, secrets management, injection prevention, and security logging.
+  It does not verify cryptography, session management beyond selected cookie/JWT flags, CSRF,
+  SSRF, deserialization, file upload, rate limiting, transport security, business logic, or
+  cloud configuration.
+- **C# and ASP.NET Core only; firewall support is pfSense only.** `csharp-aspnetcore` is the
+  only deeply validated application-security profile. The firewall module implements a pfSense
+  XML parser and analyzer. OPNsense, FortiGate, PAN-OS, and Cisco ASA are not implemented.
+- **Static analysis by default.** The gate reads files. It does not run the application, exercise
+  endpoints, inspect a database, test runtime policy behavior, or connect to live firewalls. A
+  static `PASS` can miss vulnerabilities that only appear at runtime.
+- **Security logging is limited to code evidence.** The analyzer distinguishes logging
+  infrastructure from explicit security-relevant log events, but it cannot prove that events are
+  actually written, shipped, or retained.
+- **Sigma rules are experimental stubs.** Generated rules contain curated MITRE mappings and
+  telemetry sources, but their detection logic is a starting point for review, not a production
+  deployment.
 - **Not a vulnerability scanner.** Dependency CVEs, container images, secrets in Git history,
-  infrastructure as code, and penetration testing are out of scope.
+  infrastructure as code, penetration testing, and active firewall assessment are out of scope.
 - **Not a replacement for human review.** High-risk systems still need threat modeling, design
   review, penetration testing, and an accountable security owner.
 
@@ -83,6 +90,27 @@ Known gaps include:
   report. An expired or malformed suppression is ignored with a warning.
 - A policy can hide a real finding from the active set for its lifetime. Use short expiries and
   review the suppressed-findings section.
+
+## Firewall limits
+
+- Only pfSense XML configuration exports are supported. Other vendors are not implemented.
+- The analyzer uses the exported XML only; it does not connect to the device or validate that the
+  running configuration matches the export.
+- Rule conflict detection is heuristic. Overlapping rules, floating rules, schedules, and
+  interface groups may produce false negatives or false positives.
+- `plan-firewall` and `apply-firewall` operate on the XML file. They do not push changes to a
+  device. `apply-firewall` requires `--confirm` and writes a new file plus a backup.
+- NAT and port-forward analysis looks for common risky patterns; it cannot prove that a forwarded
+  service is exploitable.
+
+## Detection Engineering limits
+
+- MITRE ATT&CK mappings are curated per rule. Findings without a mapping do not generate Sigma
+  rules.
+- Generated Sigma rules contain placeholder detection logic derived from the finding. They must be
+  reviewed, tuned, and tested against real telemetry before deployment.
+- The Wazuh adapter is a stub. It emits XML rule fragments and does not install them into a Wazuh
+  manager or validate against the Wazuh schema.
 
 ## Execution and safety limits
 

@@ -27,6 +27,12 @@ def _without_report_hash(report: Dict[str, Any]) -> Dict[str, Any]:
     integrity = clone.get("integrity")
     if isinstance(integrity, dict):
         integrity.pop("report_sha256", None)
+    # Wall-clock timestamps are excluded from the hash so the report is
+    # deterministic for the same source tree.
+    scan = clone.get("scan")
+    if isinstance(scan, dict):
+        scan.pop("started_at", None)
+        scan.pop("finished_at", None)
     return clone
 
 

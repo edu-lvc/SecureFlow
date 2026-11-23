@@ -18,6 +18,7 @@ from .analyzers import (
     analyze_injection,
     analyze_input_validation,
     analyze_secrets,
+    analyze_security_logging,
 )
 from .claims import ClaimsError, audit_claims, load_claims
 from .csharp import parse_csharp
@@ -32,6 +33,7 @@ from .model import (
     snippet_hash,
     worst_status,
 )
+from .detections.coverage import build_coverage
 from .policy import PolicyError, apply_policy, load_policy
 from .redact import redact_snippet
 from .report import finalize_report
@@ -130,6 +132,8 @@ def _run_regex_rules(files: Sequence[ScanFile], profile: Profile, warnings: List
                         cwe=list(rule.cwe),
                         asvs=list(rule.asvs),
                         owasp=list(rule.owasp),
+                        mitre_attack=list(rule.mitre_attack),
+                        telemetry_sources=list(rule.telemetry_sources),
                         evidence=Evidence(
                             path=file.relpath,
                             line=line_number,
@@ -163,6 +167,8 @@ def _run_analyzers(
             outcome = analyze_authorization(model, rules)
         elif "injection" in control.analyzers:
             outcome = analyze_injection(files, rules)
+        elif "security-logging" in control.analyzers:
+            outcome = analyze_security_logging(model, files, rules)
         else:
             other = [finding for finding in regex_findings if finding.control == control.id]
             if other:
@@ -432,6 +438,10 @@ def run_scan(
             "files": [{"path": file.relpath, "sha256": file.sha256, "size": file.size} for file in files],
             "inventory_sha256": inventory_sha256(files),
         },
+        "detections": build_coverage(
+            [finding.to_dict() for finding in active_findings],
+            sorted(profile_controls),
+        ),
     }
     return finalize_report(report)
 

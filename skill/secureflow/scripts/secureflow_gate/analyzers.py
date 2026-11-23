@@ -71,6 +71,8 @@ def _finding(
         cwe=list(rule.cwe),
         asvs=list(rule.asvs),
         owasp=list(rule.owasp),
+        mitre_attack=list(rule.mitre_attack),
+        telemetry_sources=list(rule.telemetry_sources),
         evidence=evidence,
     )
 
@@ -1084,5 +1086,182 @@ def analyze_injection(files: Sequence[ScanFile], rules: Dict[str, Rule]) -> Cont
         Status.UNVERIFIED: "Injection safety could not be proven for every detected sink.",
         Status.PASS: "Detected SQL and OS command sinks use parameterization or argument isolation.",
         Status.NOT_APPLICABLE: "No SQL or OS command construction surface was found.",
+    }[status]
+    return ControlOutcome(status=status, reason=reason, checks=checks, findings=findings)
+
+
+_LOGGING_INFRA = re.compile(
+    r"\b(ILogger|ILoggerFactory|ILoggerProvider|AddLogging|AddSerilog|AddNLog|"
+    r"Log\.Logger|LoggerMessage\.Define|Microsoft\.Extensions\.Logging)"
+)
+_SECURITY_EVENT = re.compile(
+    r"\b_logger\.(Log(?:Information|Warning|Error|Critical)|LogDebug)"
+    r"|LoggerMessage\.Define"
+)
+_SECURITY_EVENT_KEYWORDS = re.compile(
+    r"(?i)\b(auth|login|log[- ]?in|logout|log[- ]?out|sign[- ]?in|sign[- ]?out|"
+    r"access denied|unauthorized|forbidden|admin|create|delete|update|change password|"
+    r"role|permission|audit|security)\b"
+)
+
+
+def analyze_security_logging(
+    model: CSharpModel,
+    files: Sequence[ScanFile],
+    rules: Dict[str, Rule],
+) -> ControlOutcome:
+    rule_infra = rules.get("SF-LOG-001")
+    rule_events = rules.get("SF-LOG-002")
+    findings: List[Finding] = []
+    checks: List[Check] = []
+    surface = bool(model.endpoints or model.mvc_surface)
+
+    if not surface:
+        return ControlOutcome(
+            status=Status.NOT_APPLICABLE,
+            reason="No HTTP endpoints or MVC surface was found.",
+            checks=[
+                _check(
+                    "logging-surface",
+                    "Logging surface",
+                    Status.NOT_APPLICABLE,
+                    "No web application surface was detected.",
+                )
+            ],
+        )
+
+    infra_evidence: Optional[Evidence] = None
+    event_evidence: Optional[Evidence] = None
+    for file in files:
+        if not file.relpath.lower().endswith(".cs"):
+            continue
+        if infra_evidence is None:
+            match = _LOGGING_INFRA.search(file.text)
+            if match:
+                infra_evidence = evidence_at(file, match.start())
+        if event_evidence is None:
+            for match in _SECURITY_EVENT.finditer(file.text):
+                end = match.end()
+                # inspect a window after the call for a security keyword
+                window = file.text[end:end + 200]
+                if _SECURITY_EVENT_KEYWORDS.search(window):
+                    event_evidence = evidence_at(file, match.start())
+                    break
+
+    if infra_evidence is None:
+        # Conservative: missing logging infrastructure in a web project is
+        # UNVERIFIED, not FAIL, because the code might log through a framework
+        # or platform mechanism we cannot see statically.
+        fallback_file = next(
+            (file for file in files if file.relpath.lower().endswith(".cs")),
+            None,
+        )
+        infra_placeholder = (
+            Evidence(
+                path=fallback_file.relpath,
+                line=1,
+                column=1,
+                snippet="No logging infrastructure found",
+                snippet_sha256=snippet_hash("No logging infrastructure found"),
+                language="csharp",
+            )
+            if fallback_file is not None
+            else Evidence(
+                path="",
+                line=1,
+                column=1,
+                snippet="No logging infrastructure found",
+                snippet_sha256=snippet_hash("No logging infrastructure found"),
+                language="csharp",
+            )
+        )
+        if rule_infra is not None:
+            findings.append(
+                _finding(
+                    rule_infra,
+                    infra_placeholder,
+                    "The application has HTTP endpoints but no recognized logging infrastructure was detected.",
+                )
+            )
+        checks.append(
+            _check(
+                "logging-infrastructure",
+                "Logging infrastructure",
+                Status.UNVERIFIED,
+                "No ILogger, Serilog, NLog or LoggerMessage usage was detected.",
+                [infra_placeholder],
+                [rule_infra.id] if rule_infra is not None else [],
+            )
+        )
+    else:
+        checks.append(
+            _check(
+                "logging-infrastructure",
+                "Logging infrastructure",
+                Status.PASS,
+                "A recognized logging infrastructure is present.",
+                [infra_evidence],
+                [rule_infra.id] if rule_infra is not None else [],
+            )
+        )
+
+    auth_surface = bool(model.has_auth_config or model.endpoints)
+    if not auth_surface:
+        checks.append(
+            _check(
+                "security-event-logging",
+                "Security event logging",
+                Status.NOT_APPLICABLE,
+                "No authentication surface was detected; security event logging is not assessed.",
+                [],
+                [rule_events.id] if rule_events is not None else [],
+            )
+        )
+    elif event_evidence is not None:
+        checks.append(
+            _check(
+                "security-event-logging",
+                "Security event logging",
+                Status.PASS,
+                "Explicit security-relevant log events were detected.",
+                [event_evidence],
+                [rule_events.id] if rule_events is not None else [],
+            )
+        )
+    else:
+        if rule_events is not None:
+            findings.append(
+                _finding(
+                    rule_events,
+                    infra_evidence
+                    if infra_evidence is not None
+                    else Evidence(
+                        path="",
+                        line=1,
+                        column=1,
+                        snippet="No security events logged",
+                        snippet_sha256=snippet_hash("No security events logged"),
+                        language="csharp",
+                    ),
+                    "Authentication or authorization events are not explicitly logged.",
+                )
+            )
+        checks.append(
+            _check(
+                "security-event-logging",
+                "Security event logging",
+                Status.UNVERIFIED,
+                "Logging infrastructure exists, but no explicit security-relevant events were detected.",
+                [infra_evidence] if infra_evidence else [],
+                [rule_events.id] if rule_events is not None else [],
+            )
+        )
+
+    status = _status(findings, checks, surface)
+    reason = {
+        Status.FAIL: "The application does not have a recognized logging infrastructure.",
+        Status.UNVERIFIED: "Security-relevant events are not explicitly logged.",
+        Status.PASS: "Logging infrastructure and explicit security events are present.",
+        Status.NOT_APPLICABLE: "No web application surface was found.",
     }[status]
     return ControlOutcome(status=status, reason=reason, checks=checks, findings=findings)

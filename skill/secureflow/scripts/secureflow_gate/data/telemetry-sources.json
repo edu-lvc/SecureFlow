@@ -1,0 +1,61 @@
+{
+  "schema_version": "secureflow.telemetry-sources/v1",
+  "description": "Telemetry sources that can be used to detect the MITRE techniques mapped by SecureFlow findings. New sources can be added without changing the detection engine.",
+  "sources": {
+    "azure_ad": {
+      "platforms": ["identity", "cloud"],
+      "products": ["Azure Active Directory", "Microsoft Entra ID"],
+      "log_formats": ["SignInLogs", "AuditLogs"]
+    },
+    "elastic": {
+      "platforms": ["siem"],
+      "products": ["Elastic Security"],
+      "log_formats": ["Elasticsearch indices"]
+    },
+    "endpoint_files": {
+      "platforms": ["endpoint"],
+      "products": ["EDR", "file-integrity monitoring"],
+      "log_formats": ["file events"]
+    },
+    "network_ids": {
+      "platforms": ["network"],
+      "products": ["Zeek", "Suricata", "Snort"],
+      "log_formats": ["network traffic logs"]
+    },
+    "okta": {
+      "platforms": ["identity", "cloud"],
+      "products": ["Okta"],
+      "log_formats": ["System Log", "Event Hook"]
+    },
+    "sentinel": {
+      "platforms": ["siem", "cloud"],
+      "products": ["Microsoft Sentinel"],
+      "log_formats": ["Analytics tables"]
+    },
+    "splunk": {
+      "platforms": ["siem"],
+      "products": ["Splunk Enterprise", "Splunk Cloud"],
+      "log_formats": ["Splunk events"]
+    },
+    "sysmon": {
+      "platforms": ["windows", "endpoint"],
+      "products": ["Sysinternals Sysmon"],
+      "log_formats": ["Windows Event Log"]
+    },
+    "web_server_logs": {
+      "platforms": ["web"],
+      "products": ["IIS", "nginx", "Apache", "ASP.NET Core"],
+      "log_formats": ["W3C", "nginx access log"]
+    },
+    "windows_security": {
+      "platforms": ["windows"],
+      "products": ["Windows Security Log"],
+      "log_formats": ["Windows Event Log"]
+    },
+    "wazuh": {
+      "platforms": ["siem", "endpoint"],
+      "products": ["Wazuh"],
+      "log_formats": ["Wazuh alerts", "Wazuh archives"]
+    }
+  }
+}

@@ -95,6 +95,8 @@ class Finding:
     owasp: List[str]
     evidence: Evidence
     suppression: Optional[Dict[str, Any]] = None
+    mitre_attack: List[str] = field(default_factory=list)
+    telemetry_sources: List[str] = field(default_factory=list)
 
     @property
     def fingerprint(self) -> str:
@@ -123,6 +125,8 @@ class Finding:
             "cwe": list(self.cwe),
             "asvs": list(self.asvs),
             "owasp": list(self.owasp),
+            "mitre_attack": list(self.mitre_attack),
+            "telemetry_sources": list(self.telemetry_sources),
             "evidence": self.evidence.to_dict(),
         }
         if include_suppression and self.suppression:

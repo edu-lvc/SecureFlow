@@ -45,3 +45,7 @@ htmlcov/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Local firewall exports and audit reports
+/test/
+/tests/config-pfsense.utp.local-20261016052206.xml

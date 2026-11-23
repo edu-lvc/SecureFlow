@@ -25,12 +25,20 @@
       "id": "secrets-management",
       "title": "Secrets management",
       "description": "Credentials are not stored in source and are loaded from a managed provider.",
-      "analyzers": ["secrets"]
+      "analyzers": [
+        "secrets"
+      ]
     },
     {
       "id": "injection-prevention",
       "title": "Injection prevention",
       "description": "Queries and OS commands cannot be structurally altered by untrusted input.",
+      "analyzers": []
+    },
+    {
+      "id": "security-logging",
+      "title": "Security logging",
+      "description": "Security-relevant events are logged through an active logging infrastructure.",
       "analyzers": []
     }
   ],
@@ -64,10 +72,28 @@
       "flags": "",
       "message": "A credential-like value is assigned literally in source or configuration.",
       "remediation": "Remove the value, rotate it if it was real, and load the secret from a managed provider or environment-specific secret store.",
-      "cwe": ["CWE-798", "CWE-259"],
-      "asvs": ["V13.3.1"],
-      "owasp": ["A02:2025", "A04:2025"],
-      "min_matches": 1
+      "cwe": [
+        "CWE-798",
+        "CWE-259"
+      ],
+      "asvs": [
+        "V13.3.1"
+      ],
+      "owasp": [
+        "A02:2025",
+        "A04:2025"
+      ],
+      "min_matches": 1,
+      "mitre_attack": [
+        "T1552"
+      ],
+      "telemetry_sources": [
+        "file_integrity",
+        "wazuh",
+        "sentinel",
+        "elastic",
+        "splunk"
+      ]
     },
     {
       "id": "SF-SEC-002",
@@ -94,10 +120,26 @@
       "flags": "",
       "message": "Private key material is present in a scanned file.",
       "remediation": "Remove and rotate the key, store it in a hardware-backed or managed secret store, and purge it from history.",
-      "cwe": ["CWE-321"],
-      "asvs": ["V13.3.1"],
-      "owasp": ["A04:2025"],
-      "min_matches": 1
+      "cwe": [
+        "CWE-321"
+      ],
+      "asvs": [
+        "V13.3.1"
+      ],
+      "owasp": [
+        "A04:2025"
+      ],
+      "min_matches": 1,
+      "mitre_attack": [
+        "T1552"
+      ],
+      "telemetry_sources": [
+        "file_integrity",
+        "wazuh",
+        "sentinel",
+        "elastic",
+        "splunk"
+      ]
     },
     {
       "id": "SF-SEC-003",
@@ -124,10 +166,26 @@
       "flags": "",
       "message": "A token matching a known credential format is present.",
       "remediation": "Revoke the token, remove it from source and history, and load it from a secret provider at runtime.",
-      "cwe": ["CWE-798"],
-      "asvs": ["V13.3.1"],
-      "owasp": ["A02:2025"],
-      "min_matches": 1
+      "cwe": [
+        "CWE-798"
+      ],
+      "asvs": [
+        "V13.3.1"
+      ],
+      "owasp": [
+        "A02:2025"
+      ],
+      "min_matches": 1,
+      "mitre_attack": [
+        "T1552"
+      ],
+      "telemetry_sources": [
+        "file_integrity",
+        "wazuh",
+        "sentinel",
+        "elastic",
+        "splunk"
+      ]
     },
     {
       "id": "SF-SEC-004",
@@ -154,10 +212,26 @@
       "flags": "",
       "message": "A connection string contains a literal password.",
       "remediation": "Use integrated authentication or load the credential from a secret provider; rotate the exposed password.",
-      "cwe": ["CWE-798"],
-      "asvs": ["V13.3.1"],
-      "owasp": ["A02:2025"],
-      "min_matches": 1
+      "cwe": [
+        "CWE-798"
+      ],
+      "asvs": [
+        "V13.3.1"
+      ],
+      "owasp": [
+        "A02:2025"
+      ],
+      "min_matches": 1,
+      "mitre_attack": [
+        "T1552"
+      ],
+      "telemetry_sources": [
+        "file_integrity",
+        "wazuh",
+        "sentinel",
+        "elastic",
+        "splunk"
+      ]
     }
   ]
 }

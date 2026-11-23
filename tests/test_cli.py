@@ -15,7 +15,7 @@ class CliTests(unittest.TestCase):
         result = run_cli("version")
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertIn("secureflow-gate", result.stdout)
-        self.assertIn("0.1.0", result.stdout)
+        self.assertIn("0.2.1", result.stdout)
 
     def test_explain(self) -> None:
         result = run_cli("explain", "--rule", "SF-INJ-001")

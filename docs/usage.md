@@ -38,7 +38,8 @@ Options:
 | `--fail-on fail` | Exit `1` on `FAIL` (default). |
 | `--fail-on unverified` | Exit `2` when the result is `UNVERIFIED` and there is no `FAIL`. |
 | `--fail-on never` | Always exit `0` if the scan completes. |
-| `--build` | Run the optional `dotnet build` adapter. |
+| `--sigma-out DIR` | Write generated Sigma rules to this directory. |
+| `--sigma-format yaml|json` | Format for generated Sigma rules. Default `yaml`. |
 
 The gate does not execute target code unless `--build` is explicitly set. `--build` compiles a
 `.sln` or the shallowest `.csproj`; it is not a sandbox.
@@ -155,7 +156,7 @@ python skill/secureflow/scripts/secureflow-gate.py scan \
   --markdown secure-report.md
 ```
 
-Expected: all five controls `PASS`, overall `PASS`, exit `0`.
+Expected: all six controls `PASS`, overall `PASS`, exit `0`.
 
 Build and run it:
 
@@ -182,8 +183,7 @@ python skill/secureflow/scripts/secureflow-gate.py scan \
   --root examples/csharp-vulnerable/VulnerableOrders.Api
 ```
 
-Expected: all five controls `FAIL`, overall `FAIL`, exit `1`, with findings for input
-validation, authentication, authorization, secrets, SQL injection, and OS command injection.
+Expected: the five baseline controls `FAIL`, `security-logging` `UNVERIFIED`, overall `FAIL`, exit `1`, with findings for input validation, authentication, authorization, secrets, SQL injection, and OS command injection.
 
 The vulnerable application is intentionally insecure. Do not deploy it, expose it to a network,
 or reuse its code.
@@ -215,3 +215,92 @@ fails.
 For a stricter pipeline, run `verify-report` as a separate step and store the report as an
 artifact. The report hashes let reviewers confirm that the evidence was not changed after the
 scan.
+
+## Firewall audit
+
+SecureFlow can audit firewall configuration exports. Only **pfSense** is implemented in this
+release. The audit is read-only unless you explicitly use `apply-firewall`.
+
+### Audit
+
+```bash
+python skill/secureflow/scripts/secureflow-gate.py audit-firewall \
+  --config firewall-config.xml \
+  --vendor pfsense \
+  --report firewall-report.json \
+  --markdown firewall-report.md
+```
+
+### Plan
+
+```bash
+python skill/secureflow/scripts/secureflow-gate.py plan-firewall \
+  --config firewall-config.xml \
+  --vendor pfsense \
+  --changes firewall-changes.json \
+  --report firewall-plan.json
+```
+
+### Apply
+
+```bash
+python skill/secureflow/scripts/secureflow-gate.py apply-firewall \
+  --config firewall-config.xml \
+  --output firewall-config-hardened.xml \
+  --vendor pfsense \
+  --plan firewall-changes.json \
+  --backup firewall-config.xml.bak \
+  --confirm
+```
+
+`apply-firewall` always requires `--confirm`. It writes a new configuration file, backs up the
+original, and re-audits the result.
+
+## Detection Engineering
+
+The gate maps findings to MITRE ATT&CK techniques and telemetry sources. A scan report includes a
+`detections` section with a coverage ledger and generated Sigma rules.
+
+Generate Sigma rules during a scan:
+
+```bash
+python skill/secureflow/scripts/secureflow-gate.py scan \
+  --root examples/csharp-vulnerable/VulnerableOrders.Api \
+  --report report.json \
+  --sigma-out sigma-rules \
+  --sigma-format yaml
+```
+
+Generate Sigma rules from an existing report:
+
+```bash
+python skill/secureflow/scripts/secureflow-gate.py generate-sigma \
+  --report report.json \
+  --out sigma-rules \
+  --format yaml
+```
+
+Sigma rules are emitted with `status: experimental` and must be reviewed before deployment. Only
+findings with a curated MITRE mapping and a telemetry source produce a rule.
+
+### Wazuh adapter
+
+The optional stub at `integrations/siem/wazuh/sigma-to-wazuh.py` converts Sigma rules to Wazuh XML
+rule stubs. It does not install rules into a manager and does not replace native Wazuh rule logic.
+
+```bash
+python integrations/siem/wazuh/sigma-to-wazuh.py \
+  --sigma-out sigma-rules \
+  --out wazuh-rules.xml
+```
+
+## Incident response templates
+
+Create a local copy of the incident response templates:
+
+```bash
+python skill/secureflow/scripts/secureflow-gate.py init-incident --output incident-2026-11-22
+```
+
+The command writes `incident-response-template.md`, `ioc-template.md`, and `timeline-template.md`.
+It never executes destructive actions; it only prepares documentation.

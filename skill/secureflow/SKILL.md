@@ -4,7 +4,7 @@ description: Security workflow for AI coding agents. Use when designing, impleme
 license: MIT
 compatibility: Agent-agnostic Agent Skill. The workflow needs only file access and command execution. The optional gate requires Python 3.9+ and runs without third-party packages.
 metadata:
-  version: "0.1.0"
+  version: "0.2.1"
   standard: "Agent Skills specification"
 ---
 
@@ -38,11 +38,13 @@ code is written, and before security work is declared complete.
 
 Use SecureFlow when the task involves any of the following:
 
-- A new feature, endpoint, API, background job, CLI command, or data flow.
+- A new feature, endpoint, API, background job, CLI command, data flow, or firewall rule.
 - Authentication, sessions, tokens, passwords, MFA, or identity providers.
 - Authorization, roles, policies, tenants, ownership checks, or admin functions.
 - SQL, ORM queries, stored procedures, shell commands, process execution, or file paths.
 - Configuration, connection strings, API keys, certificates, or environment variables.
+- Firewall configuration exports, NAT rules, VPN settings, or network segmentation.
+- Security logging, detection rules, incident response, or SIEM rule stubs.
 - A security review, threat model, security test plan, release gate, or security report.
 - A request to "make this secure", "check for vulnerabilities", or "review security".
 
@@ -93,6 +95,7 @@ Follow the phases in order. Scale the depth to the risk; do not skip evidence.
 - Use `references/checklists.md` for the five baseline controls.
 - Look for missing authorization on object access, not only on routes.
 - Look for secrets in source, configuration, tests, fixtures, and CI files.
+- Look for missing security-relevant logging on authentication, authorization, and admin events.
 - Record findings with location, impact, and remediation.
 
 ### Phase 5 — Verify with evidence
@@ -105,6 +108,16 @@ python skill/secureflow/scripts/secureflow-gate.py scan \
   --profile csharp-aspnetcore \
   --report secureflow-report.json \
   --markdown secureflow-report.md
+```
+
+For firewall configuration exports:
+
+```bash
+python skill/secureflow/scripts/secureflow-gate.py audit-firewall \
+  --config firewall-config.xml \
+  --vendor pfsense \
+  --report firewall-report.json \
+  --markdown firewall-report.md
 ```
 
 If the skill is installed elsewhere, use the installed path to `scripts/secureflow-gate.py`.
@@ -135,6 +148,11 @@ required check passed.
 ### Phase 6 — Report and hand off
 
 - Produce the machine-readable report from the gate and a human summary.
+- Generate Sigma rules with `scan --sigma-out <dir>` when the findings have MITRE mappings and
+  telemetry sources.
+- For firewall work, produce an audit report or a remediation plan (`plan-firewall`) and apply
+  changes only with explicit approval (`apply-firewall --confirm`).
+- For incidents, use `init-incident` to create response templates.
 - For every claim, include the control, status, evidence path, line, and snippet hash.
 - State limitations and residual risk explicitly.
 - Do not say "the application is secure". Say which controls were verified, with evidence,
@@ -184,6 +202,7 @@ Rules enforced by the gate:
 | Authorization | Every mutating endpoint protected, object-level ownership or policy checks, deny-by-default |
 | Secrets management | No hardcoded credentials, secret provider configured, values absent from source and artifacts |
 | Injection prevention | Parameterized SQL/ORM, no dynamic shell construction, argument-vector process execution |
+| Security logging | Logging infrastructure present, authentication/authorization/admin events explicitly logged |
 
 Read `references/controls.md` for requirements, evidence, and anti-patterns.
 
@@ -195,8 +214,11 @@ Load only what the task needs:
 - `references/threat-modeling.md` — lightweight threat modeling method and examples.
 - `references/controls.md` — control requirements, evidence, and failure modes.
 - `references/secure-coding-csharp.md` — C# and ASP.NET Core implementation guidance.
-- `references/checklists.md` — review checklists for the five baseline controls.
+- `references/checklists.md` — review checklists for the six baseline controls.
 - `references/gate.md` — gate architecture, rules, policy, claims, and report schema.
+- `references/firewall.md` — firewall assessment with pfSense.
+- `references/detection-engineering.md` — MITRE mapping, Sigma generation, and coverage ledger.
+- `references/incident-response.md` — incident response templates and workflow.
 - `references/agent-compatibility.md` — supported agents and installation differences.
 - `references/reporting.md` — evidence-based report structure and wording.
 

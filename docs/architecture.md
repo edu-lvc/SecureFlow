@@ -22,16 +22,18 @@
 └──────────────────────────────┬──────────────────────────────────────┘
                                │ produces code, claims, review evidence
                                ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│ SecureFlow Gate                                                     │
-│ scan_tree → regex rules + C# analyzers → policy → claims → report   │
-└──────────────────────────────┬──────────────────────────────────────┘
-                               │ JSON + Markdown
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ SecureFlow Gate                                                                 │
+│ scan_tree → regex rules + C# analyzers → policy → claims → report               │
+│ firewall audit/plan/apply → backup + re-audit                                   │
+│ detection engineering → MITRE mapping → Sigma rules → coverage ledger           │
+└──────────────────────────────┬──────────────────────────────────────────────────┘
+                               │ JSON + Markdown + Sigma rules + IR templates
                                ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│ Consumers                                                           │
-│ agent summary · CI gate · human review · report verification        │
-└─────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ Consumers                                                                       │
+│ agent summary · CI gate · human review · report verification · SIEM stubs       │
+└─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### 1. SecureFlow Skill
@@ -54,13 +56,16 @@ The gate is a standard-library Python package under
 | Module | Responsibility |
 | --- | --- |
 | `cli.py` | Argument parsing, commands, exit codes, summaries. |
-| `engine.py` | Orchestration: scan, rules, analyzers, policy, claims, build adapter, report. |
+| `engine.py` | Orchestration: scan, rules, analyzers, policy, claims, build adapter, report, detections. |
 | `scanner.py` | Safe deterministic file inventory with exclusions and hashes. |
-| `rules.py` | Rule-pack loading, validation, profiles, explain output. |
+| `rules.py` | Rule-pack loading, validation, profiles, explain output, MITRE/telemetry metadata. |
 | `rulepacks/base.json` | Cross-language secret and policy-independent rules. |
-| `rulepacks/csharp-aspnetcore.json` | C#/ASP.NET Core rules, analyzers, control definitions. |
+| `rulepacks/csharp-aspnetcore.json` | C#/ASP.NET Core rules, analyzers, control definitions, security logging. |
 | `csharp.py` | Comment/string masking and a small ASP.NET Core endpoint/auth parser. |
-| `analyzers.py` | Control checks for validation, authentication, authorization, secrets, injection. |
+| `analyzers.py` | Control checks for validation, authentication, authorization, secrets, injection, logging. |
+| `firewall/` | pfSense XML parser, analyzer, report builder, and plan/apply helpers. |
+| `detections/` | MITRE mapping, telemetry sources, Sigma generation, coverage ledger. |
+| `data/` | Curated MITRE mapping, telemetry sources, and incident response templates. |
 | `policy.py` | Time-bounded suppressions with audit metadata. |
 | `claims.py` | Evidence validation and claim-versus-gate verdicts. |
 | `report.py` | Canonical JSON, report hash, Markdown, integrity verification. |
@@ -151,6 +156,7 @@ Each rule declares:
 - file include/exclude globs
 - regex pattern and optional allow pattern for regex rules
 - message, remediation, CWE, ASVS, OWASP mappings
+- optional `mitre_attack` technique IDs and `telemetry_sources`
 - `min_matches` for minimum regex match count
 
 Controls declare applicability and the analyzers that implement them. New languages can ship a
@@ -227,6 +233,22 @@ To add a language:
 3. Add tests with positive, negative, and not-applicable fixtures.
 4. Only add a Python analyzer when regex cannot express framework semantics; register it on the
    control and test it independently.
+
+To add a firewall vendor:
+
+1. Implement a parser for the vendor's configuration export under `firewall/parsers/`.
+2. Implement analyzer functions that return `ControlOutcome` using the same status model.
+3. Register the vendor in `cli.py` and add tests with secure and vulnerable fixtures.
+4. Do not claim support for a vendor until the parser and analyzer are tested against real
+   configuration exports.
+
+To add detection coverage:
+
+1. Add curated `mitre_attack` and `telemetry_sources` metadata to relevant rules.
+2. Add or update entries in `data/mitre-mapping.json` and `data/telemetry-sources.json`.
+3. Extend `detections/sigma.py` only to improve rule fidelity; never generate a rule without a
+   justified technique and source.
+4. Update `detections/coverage.py` if new coverage dimensions are needed.
 
 To add an agent:
 

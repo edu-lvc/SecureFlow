@@ -41,6 +41,7 @@ class PythonCompatibilityTests(unittest.TestCase):
             "tempfile",
             "typing",
             "unittest",
+            "xml",
         }
         for path in SCRIPTS_DIR.rglob("*.py"):
             tree = ast.parse(path.read_text(encoding="utf-8"))
